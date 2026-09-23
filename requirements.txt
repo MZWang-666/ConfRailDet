@@ -1,0 +1,13 @@
+torch
+torchvision
+numpy
+scipy
+PyYAML
+Pillow
+packaging
+faster-coco-eval>=1.6.5
+tensorboard
+calflops
+matplotlib
+sympy
+timm

@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+type: software
+title: "ConfRailDet: Domain-Guided Fine-Grained Confusion Modeling for Unified Rail Defect Detection"
+authors:
+  - family-names: Wang
+    given-names: Mingzhong
+  - family-names: Wu
+    given-names: Zijun
+  - family-names: Long
+    given-names: Jiancheng
+repository-code: "https://github.com/MZWang-666/ConfRailDet"
+license: Apache-2.0
+date-released: 2026-09-23

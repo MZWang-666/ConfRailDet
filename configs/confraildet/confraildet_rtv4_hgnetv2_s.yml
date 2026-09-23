@@ -1,0 +1,96 @@
+__include__: [
+  '../dataset/uhrd9_detection.example.yml',
+  '../runtime.yml',
+  '../base/dataloader.yml',
+  '../base/optimizer.yml',
+  '../base/dfine_hgnetv2.yml',
+  '../base/rtv4.yml'
+]
+
+output_dir: ./outputs/confraildet_full
+print_per_class_ap: True
+per_class_ap_filename: per_class_ap.csv
+
+RTv4:
+  backbone: HGNetv2
+  use_domain_branch: False
+  use_domain_film: False
+
+HGNetv2:
+  name: 'B0'
+  return_idx: [1, 2, 3]
+  freeze_at: -1
+  freeze_norm: False
+  use_lab: True
+
+HybridEncoder:
+  in_channels: [256, 512, 1024]
+  hidden_dim: 256
+  depth_mult: 0.34
+  expansion: 0.5
+  use_ms_gated_aifi: False
+  use_dcp_aifi: False
+  distill_teacher_dim: 0
+
+DFINETransformer:
+  num_layers: 3
+  eval_idx: -1
+  use_cb_iqs: False
+  use_confusion_head: True
+  confusion_domain_class_ids:
+    - [0, 1, 2, 3, 4]  # Internal ultrasonic B-scan categories
+    - [5, 6, 7, 8]     # External RGB categories
+  confusion_temperature: 0.2
+  confusion_logit_alpha: 0.25
+  confusion_fusion_mode: add
+  confusion_use_domain_context: False
+  confusion_context_hidden_dim: 128
+
+RTv4Criterion:
+  weight_dict:
+    loss_distill: 0.0
+    loss_confusion: 0.2
+  losses: ['mal', 'boxes', 'local', 'confusion']
+  use_diw_loss: False
+  confusion_domain_class_ids:
+    - [0, 1, 2, 3, 4]
+    - [5, 6, 7, 8]
+  confusion_margin: 0.2
+  confusion_topk: 2
+  confusion_prior_mode: margin
+  confusion_prior_path: ./outputs/analysis/train_prototype_similarity/confusion_prior_matrix.csv
+  confusion_prior_strength: 1.0
+
+optimizer:
+  type: AdamW
+  params:
+    -
+      params: '^(?=.*backbone)(?!.*norm|bn).*$'
+      lr: 0.0001
+    -
+      params: '^(?=.*backbone)(?=.*norm|bn).*$'
+      lr: 0.0001
+      weight_decay: 0.0
+    -
+      params: '^(?=.*(?:encoder|decoder))(?=.*(?:norm|bn|bias)).*$'
+      weight_decay: 0.0
+  lr: 0.0002
+  betas: [0.9, 0.999]
+  weight_decay: 0.0001
+
+epoches: 120
+flat_epoch: 64
+no_aug_epoch: 12
+
+train_dataloader:
+  dataset:
+    type: CocoDetection
+    use_domain_label: False
+    transforms:
+      policy:
+        epoch: [4, 40, 72]
+  collate_fn:
+    mixup_epochs: [4, 40]
+    stop_epoch: 120
+    ema_restart_decay: 0.9999
+    base_size_repeat: 20

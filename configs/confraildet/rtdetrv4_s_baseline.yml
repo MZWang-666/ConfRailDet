@@ -1,0 +1,14 @@
+__include__: [
+  './confraildet_rtv4_hgnetv2_s.yml'
+]
+
+output_dir: ./outputs/rtdetrv4_s_baseline
+
+DFINETransformer:
+  use_confusion_head: False
+
+RTv4Criterion:
+  weight_dict:
+    loss_confusion: 0.0
+  losses: ['mal', 'boxes', 'local']
+  confusion_prior_mode: none
